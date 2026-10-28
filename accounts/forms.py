@@ -3,6 +3,7 @@ from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 
 from core.permissions import ROLES
 from .models import Usuario
+from members.models import Miembro
 
 
 class UsuarioCreationForm(forms.ModelForm):
@@ -12,7 +13,9 @@ class UsuarioCreationForm(forms.ModelForm):
 
     class Meta:
         model = Usuario
-        fields = ("correo", "nombre", "activo")
+        fields = ("correo", "nombre", "activo", "miembro")
+
+    miembro = forms.ModelChoiceField(queryset=Miembro.objects.all(), required=False, label="Miembro vinculado")
 
     def clean(self):
         cleaned_data = super().clean()
@@ -38,7 +41,9 @@ class UsuarioUpdateForm(forms.ModelForm):
 
     class Meta:
         model = Usuario
-        fields = ("correo", "nombre", "activo", "rol")
+        fields = ("correo", "nombre", "activo", "rol", "miembro")
+
+    miembro = forms.ModelChoiceField(queryset=Miembro.objects.all(), required=False, label="Miembro vinculado")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}Institución{% endblock %}
+{% block content %}<h1>Institución</h1><form method="post" enctype="multipart/form-data">{% csrf_token %}<div class="card card-body mb-4">{{ form.as_p }}</div><h2>Horarios de reunión</h2>{{ horarios.management_form }}{% for horario in horarios %}<div class="card card-body mb-2">{{ horario.as_p }}{% if horario.instance.pk %}<div>{{ horario.DELETE }} <label for="{{ horario.DELETE.id_for_label }}">Quitar este horario</label></div>{% endif %}</div>{% endfor %}<button class="btn btn-primary" type="submit">Guardar</button></form>{% endblock %}

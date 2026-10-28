@@ -9,12 +9,19 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container">
-        <a class="navbar-brand" href="{% url 'inicio' %}">Iglesia</a>
+        <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'inicio' %}">
+            {% if configuracion_iglesia.logotipo %}<img src="{{ configuracion_iglesia.logotipo.url }}" alt="Logotipo" height="32">{% endif %}
+            {{ nombre_iglesia }}
+        </a>
         {% if user.is_authenticated %}
         <div class="navbar-nav">
             <a class="nav-link" href="{% url 'inicio' %}">Inicio</a>
+            {% if user.groups.all.0.name == "Administrador" or user.groups.all.0.name == "Secretario" or user.groups.all.0.name == "Pastor" or user.groups.all.0.name == "Tesorero" %}
+            <a class="nav-link" href="{% url 'miembros' %}">Miembros</a>
+            {% endif %}
             {% if user.groups.all.0.name == "Administrador" %}
             <a class="nav-link" href="{% url 'usuarios' %}">Usuarios</a>
+            <a class="nav-link" href="{% url 'institucion' %}">Institución</a>
             {% endif %}
         </div>
         <form class="ms-auto" method="post" action="{% url 'logout' %}">

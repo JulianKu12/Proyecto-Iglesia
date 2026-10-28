@@ -12,10 +12,10 @@ class UsuarioAdmin(UserAdmin):
     list_filter = ("activo", "is_staff", "is_superuser", "groups")
     fieldsets = (
         (None, {"fields": ("correo", "password")}),
-        ("Datos personales", {"fields": ("nombre", "activo")}),
+        ("Datos personales", {"fields": ("nombre", "activo", "miembro")}),
         ("Permisos", {"fields": ("is_staff", "is_superuser", "groups", "user_permissions")}),
     )
     add_fieldsets = (
-        (None, {"classes": ("wide",), "fields": ("correo", "nombre", "password1", "password2")}),
+        (None, {"classes": ("wide",), "fields": ("correo", "nombre", "miembro", "password1", "password2")}),
     )
     search_fields = ("correo", "nombre")

@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 
+from members.models import Miembro
+
 
 class UsuarioManager(BaseUserManager):
     def create_user(self, correo, password=None, **extra_fields):
@@ -24,6 +26,14 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     activo = models.BooleanField("activo", default=True)
     is_staff = models.BooleanField("acceso al admin", default=False)
     fecha_registro = models.DateTimeField("fecha de registro", auto_now_add=True)
+    miembro = models.OneToOneField(
+        Miembro,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="usuario",
+        verbose_name="miembro vinculado",
+    )
 
     objects = UsuarioManager()
     USERNAME_FIELD = "correo"
