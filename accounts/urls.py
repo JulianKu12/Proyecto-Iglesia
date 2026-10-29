@@ -10,6 +10,7 @@ from .views import (
     CorreoLoginView,
     UsuarioCreateView,
     UsuarioDeactivateView,
+    UsuarioReactivateView,
     UsuarioUpdateView,
     UsuariosListView,
 )
@@ -23,6 +24,7 @@ urlpatterns = [
     path("usuarios/nuevo/", UsuarioCreateView.as_view(), name="usuario_crear"),
     path("usuarios/<int:pk>/editar/", UsuarioUpdateView.as_view(), name="usuario_editar"),
     path("usuarios/<int:pk>/desactivar/", UsuarioDeactivateView.as_view(), name="usuario_desactivar"),
+    path("usuarios/<int:pk>/reactivar/", UsuarioReactivateView.as_view(), name="usuario_reactivar"),
     path(
         "password-reset/",
         PasswordResetView.as_view(

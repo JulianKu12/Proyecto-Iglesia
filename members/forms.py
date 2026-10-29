@@ -8,7 +8,7 @@ class MiembroForm(forms.ModelForm):
     class Meta:
         model = Miembro
         fields = ("nombre_completo", "telefono", "correo", "fecha_ingreso", "activo")
-        widgets = {"fecha_ingreso": forms.DateInput(attrs={"type": "date"})}
+        widgets = {"fecha_ingreso": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"})}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

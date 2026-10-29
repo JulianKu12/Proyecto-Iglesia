@@ -4,6 +4,13 @@ from django.conf.urls.static import static
 from django.urls import include, path
 
 
+def solo_superusuarios(request):
+    return request.user.is_active and request.user.is_superuser
+
+
+admin.site.has_permission = solo_superusuarios
+
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("core.urls")),

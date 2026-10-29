@@ -19,6 +19,7 @@ class InstitucionTests(TestCase):
     def test_solo_administrador_puede_editar(self):
         self.client.force_login(self.pastor)
         self.assertEqual(self.client.get(reverse("institucion")).status_code, 403)
+        self.assertEqual(self.client.post(reverse("institucion"), {}).status_code, 403)
         self.client.force_login(self.admin)
         self.assertEqual(self.client.get(reverse("institucion")).status_code, 200)
         self.assertEqual(

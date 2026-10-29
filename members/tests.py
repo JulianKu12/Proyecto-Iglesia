@@ -45,6 +45,16 @@ class MiembrosPermisosYFiltrosTests(TestCase):
         self.assertEqual(self.client.get(reverse("miembros")).status_code, 403)
         self.assertEqual(self.client.get(reverse("miembro_detalle", args=[self.miembro.pk])).status_code, 403)
 
+    def test_secretario_y_roles_solo_lectura_no_pueden_mutar_indebidamente(self):
+        for rol in (ROL_PASTOR, ROL_TESORERO):
+            self.client.force_login(self.usuarios[rol])
+            self.assertEqual(self.client.get(reverse("miembro_crear")).status_code, 403)
+            self.assertEqual(self.client.get(reverse("miembro_editar", args=[self.miembro.pk])).status_code, 403)
+            self.assertEqual(
+                self.client.post(reverse("miembro_estado", args=[self.miembro.pk]), {"accion": "desactivar"}).status_code,
+                403,
+            )
+
     def test_desactivar_conserva_registro_y_lo_saca_de_activos(self):
         self.client.force_login(self.usuarios[ROL_ADMINISTRADOR])
         self.client.post(reverse("miembro_estado", args=[self.miembro.pk]), {"accion": "desactivar"})
@@ -63,3 +73,28 @@ class MiembrosPermisosYFiltrosTests(TestCase):
         self.assertNotContains(respuesta, "Ana Demo")
         respuesta = self.client.get(reverse("miembros") + "?estado=todos")
         self.assertContains(respuesta, "Ana Demo")
+
+    def test_busqueda_filtros_y_paginacion_conservan_parametros(self):
+        for numero in range(12):
+            Miembro.objects.create(nombre_completo=f"Persona {numero}", fecha_ingreso=date.today())
+        self.client.force_login(self.usuarios[ROL_PASTOR])
+        respuesta = self.client.get(reverse("miembros") + "?q=Persona&estado=activos&page=2")
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(respuesta.context["estado"], "activos")
+        self.assertEqual(respuesta.context["busqueda"], "Persona")
+        self.assertContains(respuesta, "estado=activos")
+        self.assertContains(respuesta, "q=Persona")
+
+    def test_edicion_precarga_fecha_en_formato_iso(self):
+        self.client.force_login(self.usuarios[ROL_ADMINISTRADOR])
+        respuesta = self.client.get(reverse("miembro_editar", args=[self.miembro.pk]))
+        self.assertContains(respuesta, 'value="')
+        self.assertContains(respuesta, self.miembro.fecha_ingreso.isoformat())
+
+    def test_estado_redirige_al_listado_correspondiente(self):
+        self.client.force_login(self.usuarios[ROL_ADMINISTRADOR])
+        respuesta = self.client.post(
+            reverse("miembro_estado", args=[self.miembro.pk]),
+            {"accion": "desactivar"},
+        )
+        self.assertRedirects(respuesta, reverse("miembros") + "?estado=inactivos")

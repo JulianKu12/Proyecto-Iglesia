@@ -68,4 +68,15 @@ class UsuarioDeactivateView(RoleRequiredMixin, View):
         return redirect("usuarios")
 
 
+class UsuarioReactivateView(RoleRequiredMixin, View):
+    allowed_roles = (ROL_ADMINISTRADOR,)
+
+    def post(self, request, pk):
+        usuario = get_object_or_404(Usuario, pk=pk)
+        usuario.activo = True
+        usuario.save(update_fields=("activo",))
+        messages.success(request, "Usuario reactivado correctamente.")
+        return redirect("usuarios")
+
+
 PasswordResetView = auth_views.PasswordResetView

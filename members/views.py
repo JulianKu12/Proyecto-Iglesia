@@ -3,6 +3,7 @@ import unicodedata
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views import View
 
 from core.permissions import (
@@ -100,4 +101,4 @@ class MiembroEstadoView(RoleRequiredMixin, View):
         miembro.activo = request.POST.get("accion") == "reactivar"
         miembro.save(update_fields=("activo",))
         messages.success(request, f"Miembro {'reactivado' if miembro.activo else 'desactivado'} correctamente.")
-        return redirect("miembro_detalle", miembro.pk)
+        return redirect(f"{reverse('miembros')}?estado={'activos' if miembro.activo else 'inactivos'}")

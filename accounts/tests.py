@@ -17,6 +17,49 @@ class VinculoUsuarioMiembroTests(TestCase):
             Usuario.objects.create_user("segundo@iglesia.test", "secreto123", nombre="Segundo", miembro=miembro)
 
 
+class RutasUsuariosTests(TestCase):
+    def setUp(self):
+        self.admin = Usuario.objects.create_user("admin-rutas@test.local", "secreto123", nombre="Admin")
+        self.admin.groups.add(Group.objects.get(name=ROL_ADMINISTRADOR))
+        self.usuario = Usuario.objects.create_user("usuario-rutas@test.local", "secreto123", nombre="Usuario")
+
+    def test_reactivar_usuario_desde_la_aplicacion(self):
+        self.usuario.activo = False
+        self.usuario.save(update_fields=("activo",))
+        self.client.force_login(self.admin)
+        respuesta = self.client.post(reverse("usuario_reactivar", args=[self.usuario.pk]))
+        self.assertRedirects(respuesta, reverse("usuarios"))
+        self.usuario.refresh_from_db()
+        self.assertTrue(self.usuario.activo)
+
+    def test_solo_administrador_accede_a_todas_las_rutas_de_usuarios(self):
+        pastor = Usuario.objects.create_user("pastor-rutas@test.local", "secreto123", nombre="Pastor")
+        pastor.groups.add(Group.objects.get(name=ROL_PASTOR))
+        rutas = (
+            ("usuarios", "get", {}),
+            ("usuario_crear", "get", {}),
+            ("usuario_editar", "get", {"args": [self.usuario.pk]}),
+            ("usuario_desactivar", "post", {"args": [self.usuario.pk]}),
+            ("usuario_reactivar", "post", {"args": [self.usuario.pk]}),
+        )
+        self.client.force_login(pastor)
+        for nombre, metodo, opciones in rutas:
+            respuesta = getattr(self.client, metodo)(reverse(nombre, **opciones))
+            self.assertEqual(respuesta.status_code, 403, nombre)
+
+    def test_sin_sesion_va_al_login_de_la_aplicacion(self):
+        respuesta = self.client.get(reverse("usuarios"))
+        self.assertRedirects(respuesta, f"{reverse('login')}?next={reverse('usuarios')}")
+
+    def test_panel_django_admin_solo_acepta_superusuarios(self):
+        staff = Usuario.objects.create_user("staff@test.local", "secreto123", nombre="Staff", is_staff=True)
+        self.client.force_login(staff)
+        self.assertEqual(self.client.get("/admin/").status_code, 302)
+        superusuario = Usuario.objects.create_superuser("super@test.local", "secreto123", nombre="Super")
+        self.client.force_login(superusuario)
+        self.assertEqual(self.client.get("/admin/").status_code, 200)
+
+
 class AutenticacionYRolesTests(TestCase):
     def setUp(self):
         self.admin = Usuario.objects.create_user("admin@iglesia.test", "secreto123", nombre="Admin")
