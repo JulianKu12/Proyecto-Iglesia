@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Resumen de asistencia{% endblock %}
+{% block content %}
+<h1>Resumen de asistencia</h1>
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-3"><label>Fecha <input type="date" name="fecha" value="{{ fecha|date:'Y-m-d' }}" class="form-control"></label></div>
+    <div class="col-md-2"><label>Periodo <select name="periodo" class="form-select"><option value="semana" {% if periodo == "semana" %}selected{% endif %}>Semana</option><option value="mes" {% if periodo == "mes" %}selected{% endif %}>Mes</option></select></label></div>
+    <div class="col-md-3"><label>Ministerio <select name="ministerio" class="form-select"><option value="">Todos</option>{% for item in ministerios %}<option value="{{ item.pk }}" {% if ministerio == item.pk|stringformat:"s" %}selected{% endif %}>{{ item.nombre }}</option>{% endfor %}</select></label></div>
+    <div class="col-md-2"><label>Tipo <select name="tipo" class="form-select"><option value="">Todos</option>{% for valor,nombre in tipos %}<option value="{{ valor }}" {% if tipo == valor %}selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label></div>
+    <div class="col-md-2 d-flex align-items-end"><button class="btn btn-primary">Mostrar</button></div>
+</form>
+<p>Periodo: {{ inicio|date:"d/m/Y" }} al {{ fin|date:"d/m/Y" }}</p>
+<div class="d-flex gap-2 mb-3"><a class="btn btn-outline-secondary" href="?fecha={{ anterior|date:'Y-m-d' }}&periodo={{ periodo }}&ministerio={{ ministerio }}&tipo={{ tipo }}">Periodo anterior</a><a class="btn btn-outline-secondary" href="?fecha={{ siguiente|date:'Y-m-d' }}&periodo={{ periodo }}&ministerio={{ ministerio }}&tipo={{ tipo }}">Periodo siguiente</a></div>
+<table class="table"><thead><tr><th>Fecha</th><th>Evento</th><th>Presentes</th><th>Ausentes</th><th>Total</th><th>%</th></tr></thead><tbody>
+{% for fila in resumen.filas %}<tr><td>{{ fila.fecha|date:"d/m/Y" }}</td><td><a href="{% url 'asistencia_detalle' fila.evento_id %}">{{ fila.titulo }}</a></td><td>{{ fila.presentes }}</td><td>{{ fila.ausentes }}</td><td>{{ fila.total }}</td><td>{{ fila.porcentaje }}%</td></tr>{% empty %}<tr><td colspan="6">No hay registros en este periodo.</td></tr>{% endfor %}
+</tbody></table>
+<p><strong>Totales:</strong> {{ resumen.total_presentes }} presentes, {{ resumen.total_ausentes }} ausentes, {{ resumen.total }} registros. <strong>Promedio de asistentes por evento:</strong> {{ resumen.promedio }}.</p>
+{% endblock %}
