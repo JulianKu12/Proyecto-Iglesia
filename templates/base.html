@@ -26,6 +26,8 @@
             <a class="nav-link" href="{% url 'usuarios' %}">Usuarios</a>
             <a class="nav-link" href="{% url 'institucion' %}">Institución</a>
             {% endif %}
+            <a class="nav-link" href="{% url 'anuncios' %}">Anuncios</a>
+            {% if puede_ver_finanzas %}<a class="nav-link" href="{% url 'aportaciones' %}">Finanzas</a>{% endif %}
         </div>
         <form class="ms-auto" method="post" action="{% url 'logout' %}">
             {% csrf_token %}

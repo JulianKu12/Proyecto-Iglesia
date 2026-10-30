@@ -29,6 +29,8 @@ urlpatterns = [
     path("ministerios/", include("ministries.urls")),
     path("eventos/", include("events.urls")),
     path("asistencia/", include("attendance.urls")),
+    path("finanzas/", include("finance.urls")),
+    path("anuncios/", include("announcements.urls")),
 ]
 
 handler403 = "core.permissions.permission_denied"

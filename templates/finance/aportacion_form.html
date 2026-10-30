@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}{% if aportacion %}Editar aportación{% else %}Nueva aportación{% endif %}{% endblock %}
+{% block content %}<h1>{% if aportacion %}Editar aportación{% else %}Nueva aportación{% endif %}</h1><form method="post" novalidate>{% csrf_token %}{% include "includes/form_fields.html" with form=form %}<button class="btn btn-primary">Guardar</button> <a class="btn btn-outline-secondary" href="{% if aportacion %}{% url 'aportacion_detalle' aportacion.pk %}{% else %}{% url 'aportaciones' %}{% endif %}">Cancelar</a></form>{% endblock %}

@@ -16,6 +16,12 @@ ROLES = (
 )
 
 
+def puede_ver_finanzas(usuario):
+    return usuario.is_authenticated and usuario.groups.filter(
+        name__in=(ROL_ADMINISTRADOR, ROL_TESORERO, ROL_PASTOR)
+    ).exists()
+
+
 class RoleRequiredMixin:
     allowed_roles = ()
 

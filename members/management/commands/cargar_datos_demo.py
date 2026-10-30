@@ -7,6 +7,8 @@ from members.models import Miembro
 from ministries.models import Ministerio
 from events.models import Evento
 from attendance.models import Asistencia
+from finance.models import Aportacion
+from announcements.models import Anuncio
 
 
 class Command(BaseCommand):
@@ -81,3 +83,39 @@ class Command(BaseCommand):
                             defaults={"presente": (indice + numero) % 4 != 0, "registrado_por": registrador},
                         )
         self.stdout.write(self.style.SUCCESS("Ministerios y eventos demo listos; puede ejecutarse nuevamente sin duplicar datos."))
+        registrador = coordinadores[0] if coordinadores else None
+        if registrador is None:
+            from accounts.models import Usuario
+            registrador = Usuario.objects.filter(activo=True).first()
+        if registrador and Miembro.objects.exists():
+            miembros = list(Miembro.objects.filter(activo=True).order_by("id"))
+            conceptos = ("diezmo", "ofrenda", "donacion", "evento_especial", "otro")
+            metodos = ("efectivo", "transferencia", "deposito", "cheque", "tarjeta", "otro")
+            for numero in range(1, 61):
+                fecha = hoy - timedelta(days=(numero * 3) % 180)
+                Aportacion.objects.get_or_create(
+                    fecha=fecha,
+                    monto=f"{50 + (numero * 37) % 950}.00",
+                    concepto=conceptos[numero % len(conceptos)],
+                    metodo=metodos[numero % len(metodos)],
+                    defaults={
+                        "descripcion": f"Aportación demo {numero:02d}",
+                        "miembro": None if numero % 5 == 0 else miembros[numero % len(miembros)],
+                        "anulada": numero in (7, 42),
+                        "motivo_anulacion": "Registro demo anulado." if numero in (7, 42) else "",
+                        "registrado_por": registrador,
+                        "modificado_por": registrador,
+                    },
+                )
+            for numero in range(1, 9):
+                Anuncio.objects.get_or_create(
+                    titulo=f"Anuncio demo {numero:02d}",
+                    defaults={
+                        "contenido": f"Contenido de prueba del anuncio {numero}.",
+                        "fecha_publicacion": hoy + timedelta(days=7) if numero == 7 else hoy - timedelta(days=numero),
+                        "vigente_hasta": hoy - timedelta(days=1) if numero == 8 else None,
+                        "importante": numero in (1, 3, 5),
+                        "autor": registrador,
+                    },
+                )
+            self.stdout.write(self.style.SUCCESS("Aportaciones y anuncios demo listos; puede ejecutarse nuevamente sin duplicar datos."))

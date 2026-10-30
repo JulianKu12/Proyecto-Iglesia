@@ -5,4 +5,18 @@
     <h1>Bienvenido, {{ user.nombre }}</h1>
     <p class="lead">Esta es la página de inicio provisional del sistema.</p>
 </div>
+<div class="row g-4 mt-2">
+    <section class="col-md-6">
+        <h2>Próximos eventos</h2>
+        {% for evento in proximos_eventos %}
+        <div class="card mb-2"><div class="card-body"><a href="{% url 'evento_detalle' evento.pk %}">{{ evento.titulo }}</a><br>{{ evento.fecha|date:"d/m/Y" }} {{ evento.hora|time:"H:i" }}</div></div>
+        {% empty %}<p>No hay próximos eventos programados.</p>{% endfor %}
+    </section>
+    <section class="col-md-6">
+        <h2>Avisos importantes</h2>
+        {% for anuncio in avisos_importantes %}
+        <div class="card mb-2"><div class="card-body"><h3 class="h5">{{ anuncio.titulo }}</h3><p style="white-space: pre-line">{{ anuncio.contenido }}</p></div></div>
+        {% empty %}<p>No hay avisos importantes por ahora.</p>{% endfor %}
+    </section>
+</div>
 {% endblock %}

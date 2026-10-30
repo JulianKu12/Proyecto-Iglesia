@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}Anuncio{% endblock %}
+{% block content %}<h1>{% if anuncio %}Editar anuncio{% else %}Nuevo anuncio{% endif %}</h1><form method="post" novalidate>{% csrf_token %}{% include "includes/form_fields.html" with form=form %}<button class="btn btn-primary">Guardar</button> <a class="btn btn-outline-secondary" href="{% url 'anuncios_gestion' %}">Cancelar</a></form>{% endblock %}

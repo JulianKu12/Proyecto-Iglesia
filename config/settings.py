@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     "ministries",
     "events",
     "attendance",
+    "finance",
+    "announcements",
 ]
 
 MIDDLEWARE = [
@@ -106,3 +108,4 @@ EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "False").lower() in {"true", "1", "ye
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@iglesia.local")
 PASSWORD_RESET_TIMEOUT = 3600
 TEMPLATES[0]["OPTIONS"]["context_processors"].append("institution.context_processors.iglesia")
+TEMPLATES[0]["OPTIONS"]["context_processors"].append("finance.context_processors.permisos_finanzas")
