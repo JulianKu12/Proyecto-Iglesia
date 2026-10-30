@@ -34,6 +34,8 @@ INSTALLED_APPS = [
     "core",
     "members",
     "institution",
+    "ministries",
+    "events",
 ]
 
 MIDDLEWARE = [

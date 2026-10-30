@@ -30,13 +30,15 @@ def _normalizar(texto):
 
 
 class MiembrosListView(RoleRequiredMixin, View):
-    allowed_roles = ROLES_LECTURA
+    allowed_roles = ROLES_LECTURA + ("Coordinador",)
 
     def get(self, request):
         estado = request.GET.get("estado", "activos")
         if estado not in {"activos", "inactivos", "todos"}:
             estado = "activos"
         queryset = Miembro.objects.all()
+        if request.user.groups.filter(name="Coordinador").exists():
+            queryset = queryset.filter(ministerios__coordinador=request.user).distinct()
         if estado == "activos":
             queryset = queryset.filter(activo=True)
         elif estado == "inactivos":
@@ -55,10 +57,18 @@ class MiembrosListView(RoleRequiredMixin, View):
 
 
 class MiembroDetailView(RoleRequiredMixin, View):
-    allowed_roles = ROLES_LECTURA
+    allowed_roles = ROLES_LECTURA + ("Coordinador",)
 
     def get(self, request, pk):
-        return render(request, "members/miembro_detail.html", {"miembro": get_object_or_404(Miembro, pk=pk)})
+        queryset = Miembro.objects.all()
+        if request.user.groups.filter(name="Coordinador").exists():
+            queryset = queryset.filter(ministerios__coordinador=request.user).distinct()
+        miembro = get_object_or_404(queryset, pk=pk)
+        return render(
+            request,
+            "members/miembro_detail.html",
+            {"miembro": miembro, "ministerios": miembro.ministerios.filter(coordinador=request.user) if request.user.groups.filter(name="Coordinador").exists() else miembro.ministerios.all()},
+        )
 
 
 class MiembroCreateView(RoleRequiredMixin, View):

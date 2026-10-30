@@ -55,6 +55,7 @@ class UsuarioUpdateView(RoleRequiredMixin, View):
 
     def post(self, request, pk):
         usuario = self.get_usuario(pk)
+        era_coordinador = usuario.groups.filter(name="Coordinador").exists()
         form = UsuarioUpdateForm(request.POST, instance=usuario)
         form.request_user = request.user
         if form.is_valid():
@@ -65,6 +66,10 @@ class UsuarioUpdateView(RoleRequiredMixin, View):
                 form.add_error("rol", "Debe existir al menos un Administrador activo.")
             if not form.errors:
                 form.save()
+                if era_coordinador and (not usuario.activo or rol_nuevo != "Coordinador"):
+                    from ministries.models import Ministerio
+                    if Ministerio.objects.filter(coordinador=usuario).update(coordinador=None):
+                        messages.warning(request, "Los ministerios del usuario quedaron sin coordinador.")
                 messages.success(request, "Usuario actualizado correctamente.")
                 return redirect("usuarios")
         return render(request, "accounts/usuario_form.html", {"form": form})
@@ -81,8 +86,13 @@ class UsuarioDeactivateView(RoleRequiredMixin, View):
         if usuario.groups.filter(name="Administrador").exists() and usuario.activo and _administradores_activos() <= 1:
             messages.error(request, "Debe existir al menos un Administrador activo.")
             return redirect("usuarios")
+        era_coordinador = usuario.groups.filter(name="Coordinador").exists()
         usuario.activo = False
         usuario.save(update_fields=("activo",))
+        if era_coordinador:
+            from ministries.models import Ministerio
+            if Ministerio.objects.filter(coordinador=usuario).update(coordinador=None):
+                messages.warning(request, "Los ministerios del usuario quedaron sin coordinador.")
         messages.success(request, "Usuario desactivado correctamente.")
         return redirect("usuarios")
 

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ ministerio.nombre }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center"><h1>{{ ministerio.nombre }}</h1>{% if puede_gestionar %}<a class="btn btn-primary" href="{% url 'ministerio_editar' ministerio.pk %}">Editar</a>{% endif %}</div>
+<p>{{ ministerio.descripcion|default:"Sin descripción." }}</p><dl class="row"><dt class="col-sm-3">Coordinador</dt><dd class="col-sm-9">{{ ministerio.coordinador.nombre|default:"Sin coordinador" }}</dd><dt class="col-sm-3">Estado</dt><dd class="col-sm-9">{% if ministerio.activo %}Activo{% else %}Inactivo{% endif %}</dd></dl>
+{% if puede_gestionar %}<form method="post" action="{% url 'ministerio_estado' ministerio.pk %}" class="mb-4" data-confirm="{% if ministerio.activo %}¿Desactivar este ministerio? Sus eventos no se cancelarán.{% else %}¿Reactivar este ministerio?{% endif %}">{% csrf_token %}<input type="hidden" name="accion" value="{% if ministerio.activo %}desactivar{% else %}reactivar{% endif %}"><button class="btn btn-outline-secondary">{% if ministerio.activo %}Desactivar{% else %}Reactivar{% endif %}</button></form>{% endif %}
+<h2>Integrantes activos</h2>
+<form method="get" class="row g-2 mb-2"><div class="col-md-6"><input name="q" value="{{ busqueda }}" class="form-control" placeholder="Buscar integrante"></div><div class="col-auto"><button class="btn btn-outline-primary">Buscar</button></div></form>
+<ul>{% for miembro in integrantes %}<li><a href="{% url 'miembro_detalle' miembro.pk %}">{{ miembro.nombre_completo }}</a>{% if puede_gestionar %}<form method="post" action="{% url 'ministerio_quitar_integrante' ministerio.pk miembro.pk %}" class="d-inline" data-confirm="¿Quitar este integrante del ministerio?">{% csrf_token %}<button class="btn btn-sm btn-link text-danger">Quitar</button></form>{% endif %}</li>{% empty %}<li>No hay integrantes activos.</li>{% endfor %}</ul>
+{% if puede_gestionar %}<h3>Agregar integrantes</h3><form method="post" action="{% url 'ministerio_integrantes' ministerio.pk %}">{% csrf_token %}{% include "includes/form_fields.html" with form=form_integrantes %}<button class="btn btn-primary">Agregar seleccionados</button></form>{% endif %}
+<h2 class="mt-4">Actividades programadas</h2><ul>{% for evento in eventos %}<li>{{ evento.fecha|date:"d/m/Y" }} {{ evento.hora|time:"H:i" }} - <a href="{% url 'evento_detalle' evento.pk %}">{{ evento.titulo }}</a></li>{% empty %}<li>No hay actividades futuras programadas.</li>{% endfor %}</ul>
+<a class="btn btn-outline-secondary" href="{% url 'ministerios' %}">Volver</a>
+{% endblock %}

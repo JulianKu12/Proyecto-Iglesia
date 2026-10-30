@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}{% if evento %}Editar evento{% else %}Nuevo evento{% endif %}{% endblock %}
+{% block content %}<h1>{% if evento %}Editar evento{% else %}Nuevo evento{% endif %}</h1><form method="post" novalidate>{% csrf_token %}{% include "includes/form_fields.html" with form=form %}<button class="btn btn-primary">Guardar</button> <a class="btn btn-outline-secondary" href="{% if evento %}{% url 'evento_detalle' evento.pk %}{% else %}{% url 'eventos' %}{% endif %}">Cancelar</a></form>{% endblock %}

@@ -42,8 +42,8 @@ class MiembrosPermisosYFiltrosTests(TestCase):
         self.client.force_login(self.usuarios[ROL_PASTOR])
         self.assertEqual(self.client.get(reverse("miembro_crear")).status_code, 403)
         self.client.force_login(self.usuarios[ROL_COORDINADOR])
-        self.assertEqual(self.client.get(reverse("miembros")).status_code, 403)
-        self.assertEqual(self.client.get(reverse("miembro_detalle", args=[self.miembro.pk])).status_code, 403)
+        self.assertEqual(self.client.get(reverse("miembros")).status_code, 200)
+        self.assertEqual(self.client.get(reverse("miembro_detalle", args=[self.miembro.pk])).status_code, 404)
 
     def test_secretario_y_roles_solo_lectura_no_pueden_mutar_indebidamente(self):
         for rol in (ROL_PASTOR, ROL_TESORERO):
