@@ -21,6 +21,7 @@
             {% endif %}
             {% if user.groups.all.0.name == "Administrador" or user.groups.all.0.name == "Pastor" or user.groups.all.0.name == "Secretario" or user.groups.all.0.name == "Coordinador" %}<a class="nav-link" href="{% url 'ministerios' %}">{% if user.groups.all.0.name == "Coordinador" %}Mis ministerios{% else %}Ministerios{% endif %}</a>{% endif %}
             {% if user.groups.all.0.name == "Administrador" or user.groups.all.0.name == "Pastor" or user.groups.all.0.name == "Secretario" or user.groups.all.0.name == "Tesorero" or user.groups.all.0.name == "Coordinador" %}<a class="nav-link" href="{% url 'eventos' %}">Eventos</a><a class="nav-link" href="{% url 'calendario' %}">Calendario</a>{% endif %}
+            {% if user.groups.all.0.name == "Administrador" or user.groups.all.0.name == "Pastor" or user.groups.all.0.name == "Secretario" or user.groups.all.0.name == "Coordinador" %}<a class="nav-link" href="{% url 'asistencia_registrar' %}">Asistencia</a><a class="nav-link" href="{% url 'asistencia_historial' %}">Historial</a><a class="nav-link" href="{% url 'asistencia_resumen' %}">Resumen</a>{% endif %}
             {% if user.groups.all.0.name == "Administrador" %}
             <a class="nav-link" href="{% url 'usuarios' %}">Usuarios</a>
             <a class="nav-link" href="{% url 'institucion' %}">Institución</a>

@@ -64,10 +64,22 @@ class MiembroDetailView(RoleRequiredMixin, View):
         if request.user.groups.filter(name="Coordinador").exists():
             queryset = queryset.filter(ministerios__coordinador=request.user).distinct()
         miembro = get_object_or_404(queryset, pk=pk)
+        asistencia = None
+        if request.user.groups.filter(name__in=("Administrador", "Pastor", "Secretario", "Coordinador")).exists():
+            from attendance.models import Asistencia
+            registros = Asistencia.objects.filter(miembro=miembro).select_related("evento").order_by("-evento__fecha", "-evento__hora")
+            total = registros.count()
+            presentes = registros.filter(presente=True).count()
+            asistencia = {
+                "total": total,
+                "presentes": presentes,
+                "porcentaje": round(presentes * 100 / total, 2) if total else 0,
+                "ultimos": registros[:10],
+            }
         return render(
             request,
             "members/miembro_detail.html",
-            {"miembro": miembro, "ministerios": miembro.ministerios.filter(coordinador=request.user) if request.user.groups.filter(name="Coordinador").exists() else miembro.ministerios.all()},
+            {"miembro": miembro, "ministerios": miembro.ministerios.filter(coordinador=request.user) if request.user.groups.filter(name="Coordinador").exists() else miembro.ministerios.all(), "asistencia": asistencia},
         )
 
 

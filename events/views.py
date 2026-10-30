@@ -84,7 +84,7 @@ class EventoDetailView(RoleRequiredMixin, View):
 
     def get(self, request, pk):
         evento = get_object_or_404(_eventos_visibles(request), pk=pk)
-        return render(request, "events/evento_detail.html", {"evento": evento, "puede_gestionar": request.user.groups.filter(name__in=ROLES_GESTION).exists()})
+        return render(request, "events/evento_detail.html", {"evento": evento, "puede_gestionar": request.user.groups.filter(name__in=ROLES_GESTION).exists(), "hoy": timezone.localdate()})
 
 
 class EventoUpdateView(RoleRequiredMixin, View):

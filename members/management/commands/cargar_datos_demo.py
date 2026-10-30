@@ -1,12 +1,12 @@
 from datetime import date, timedelta
 
 from django.core.management.base import BaseCommand
-from django.contrib.auth.models import Group
 from django.utils import timezone
 
 from members.models import Miembro
 from ministries.models import Ministerio
 from events.models import Evento
+from attendance.models import Asistencia
 
 
 class Command(BaseCommand):
@@ -68,4 +68,16 @@ class Command(BaseCommand):
             )
             if creado and miembros_activos:
                 evento.responsables.add(miembros_activos[numero % len(miembros_activos)])
+            if evento.fecha <= hoy and evento.estado == Evento.ESTADO_PROGRAMADO and miembros_activos:
+                registrador = coordinadores[0] if coordinadores else None
+                if registrador is None:
+                    from accounts.models import Usuario
+                    registrador = Usuario.objects.filter(activo=True).first()
+                if registrador:
+                    for indice, miembro in enumerate(miembros_activos):
+                        Asistencia.objects.get_or_create(
+                            evento=evento,
+                            miembro=miembro,
+                            defaults={"presente": (indice + numero) % 4 != 0, "registrado_por": registrador},
+                        )
         self.stdout.write(self.style.SUCCESS("Ministerios y eventos demo listos; puede ejecutarse nuevamente sin duplicar datos."))

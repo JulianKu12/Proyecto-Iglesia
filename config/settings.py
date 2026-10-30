@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "institution",
     "ministries",
     "events",
+    "attendance",
 ]
 
 MIDDLEWARE = [
