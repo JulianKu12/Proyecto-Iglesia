@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib.auth import password_validation
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
+from django.core.mail import EmailMultiAlternatives
+from django.template import loader
 
 from core.permissions import ROLES
 from .models import Usuario
@@ -20,6 +22,13 @@ class BootstrapErrorsMixin:
                     css = field.widget.attrs.get("class", "")
                     field.widget.attrs["class"] = f"{css} is-invalid".strip()
             self._errores_marcados = True
+
+
+class CorreoRecuperacion(EmailMultiAlternatives):
+    def message(self):
+        mensaje = super().message()
+        mensaje.set_content(self.body, subtype="plain", charset="us-ascii", cte="7bit")
+        return mensaje
 
 
 class UsuarioCreationForm(BootstrapErrorsMixin, forms.ModelForm):
@@ -96,6 +105,23 @@ class CorreoPasswordResetForm(BootstrapErrorsMixin, PasswordResetForm):
         for user in Usuario._default_manager.filter(correo__iexact=email, activo=True):
             if user.has_usable_password():
                 yield user
+
+    def send_mail(
+        self,
+        subject_template_name,
+        email_template_name,
+        context,
+        from_email,
+        to_email,
+        html_email_template_name=None,
+    ):
+        subject = "".join(loader.render_to_string(subject_template_name, context).splitlines())
+        body = loader.render_to_string(email_template_name, context)
+        email_message = CorreoRecuperacion(subject, body, from_email, [to_email])
+        if html_email_template_name is not None:
+            html_email = loader.render_to_string(html_email_template_name, context)
+            email_message.attach_alternative(html_email, "text/html")
+        email_message.send()
 
 
 class EspanolSetPasswordForm(BootstrapErrorsMixin, SetPasswordForm):

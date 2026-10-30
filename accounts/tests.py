@@ -144,7 +144,10 @@ class RutasUsuariosTests(TestCase):
     def test_recuperacion_de_contrasena_completa(self):
         self.client.post(reverse("password_reset"), {"email": self.admin.correo})
         self.assertEqual(len(mail.outbox), 1)
-        enlace = next(line for line in mail.outbox[0].body.splitlines() if "password-reset/" in line)
+        lineas = [line.strip() for line in mail.outbox[0].body.splitlines() if line.strip()]
+        self.assertEqual(len(lineas), 1)
+        enlace = lineas[0]
+        self.assertTrue(enlace.startswith("http://testserver/cuentas/password-reset/"))
         respuesta = self.client.get(enlace, follow=True)
         self.assertEqual(respuesta.status_code, 200)
         token_url = respuesta.request["PATH_INFO"]
