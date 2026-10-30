@@ -20,6 +20,10 @@ urlpatterns = [
 ]
 
 handler403 = "core.permissions.permission_denied"
+handler400 = "core.permissions.bad_request"
+handler404 = "core.permissions.page_not_found"
+handler500 = "core.permissions.server_error"
+handler405 = "core.permissions.method_not_allowed"
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

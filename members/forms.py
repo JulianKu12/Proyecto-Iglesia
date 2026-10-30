@@ -12,5 +12,11 @@ class MiembroForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    def full_clean(self):
+        super().full_clean()
+        for name, field in self.fields.items():
+            if self.errors.get(name):
+                field.widget.attrs["class"] = "is-invalid"
         if not self.instance.pk:
             self.initial["fecha_ingreso"] = timezone.localdate()

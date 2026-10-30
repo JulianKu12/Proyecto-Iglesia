@@ -9,6 +9,15 @@ class ConfiguracionIglesiaForm(forms.ModelForm):
         model = ConfiguracionIglesia
         fields = ("nombre", "logotipo", "direccion", "telefono", "correo_contacto")
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def full_clean(self):
+        super().full_clean()
+        for name, field in self.fields.items():
+            if self.errors.get(name):
+                field.widget.attrs["class"] = "is-invalid"
+
 
 HorarioReunionFormSet = inlineformset_factory(
     ConfiguracionIglesia,
@@ -16,5 +25,6 @@ HorarioReunionFormSet = inlineformset_factory(
     fields=("dia_semana", "hora", "nombre"),
     extra=1,
     can_delete=True,
+    can_delete_extra=False,
     widgets={"hora": forms.TimeInput(attrs={"type": "time"})},
 )

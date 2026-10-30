@@ -44,3 +44,12 @@ class InstitucionTests(TestCase):
         ConfiguracionIglesia.objects.create(nombre="Primera")
         with self.assertRaises(IntegrityError):
             ConfiguracionIglesia.objects.create(nombre="Segunda")
+
+    def test_fila_nueva_no_muestra_eliminar_y_guardada_si(self):
+        configuracion = ConfiguracionIglesia.objects.create(nombre="Iglesia")
+        self.client.force_login(self.admin)
+        respuesta = self.client.get(reverse("institucion"))
+        self.assertNotContains(respuesta, 'name="horarios-0-DELETE"')
+        configuracion.horarios.create(dia_semana=6, hora="10:00", nombre="Culto")
+        respuesta = self.client.get(reverse("institucion"))
+        self.assertContains(respuesta, 'name="horarios-0-DELETE"')

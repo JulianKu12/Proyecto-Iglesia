@@ -14,7 +14,7 @@ from .views import (
     UsuarioUpdateView,
     UsuariosListView,
 )
-from .forms import CorreoPasswordResetForm
+from .forms import CorreoPasswordResetForm, EspanolSetPasswordForm
 from django.contrib.auth.views import PasswordResetView
 
 urlpatterns = [
@@ -36,6 +36,10 @@ urlpatterns = [
         name="password_reset",
     ),
     path("password-reset/enviado/", PasswordResetDoneView.as_view(template_name="registration/password_reset_done.html"), name="password_reset_done"),
-    path("password-reset/<uidb64>/<token>/", PasswordResetConfirmView.as_view(template_name="registration/password_reset_confirm.html"), name="password_reset_confirm"),
+    path("password-reset/<uidb64>/<token>/", PasswordResetConfirmView.as_view(
+        template_name="registration/password_reset_confirm.html",
+        form_class=EspanolSetPasswordForm,
+        success_url="/cuentas/password-reset/completo/",
+    ), name="password_reset_confirm"),
     path("password-reset/completo/", PasswordResetCompleteView.as_view(template_name="registration/password_reset_complete.html"), name="password_reset_complete"),
 ]

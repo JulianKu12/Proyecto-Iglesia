@@ -1,6 +1,7 @@
 from django.contrib.auth.models import Group
 from django.db import IntegrityError
-from django.test import TestCase
+from django.core import mail
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from .models import Usuario
@@ -59,6 +60,78 @@ class RutasUsuariosTests(TestCase):
         self.client.force_login(superusuario)
         self.assertEqual(self.client.get("/admin/").status_code, 200)
 
+    def test_protecciones_del_administrador(self):
+        self.client.force_login(self.admin)
+        respuesta = self.client.post(reverse("usuario_desactivar", args=[self.admin.pk]))
+        self.assertRedirects(respuesta, reverse("usuarios"))
+        self.admin.refresh_from_db()
+        self.assertTrue(self.admin.activo)
+        respuesta = self.client.post(
+            reverse("usuario_editar", args=[self.admin.pk]),
+            {
+                "correo": self.admin.correo,
+                "nombre": self.admin.nombre,
+                "activo": "on",
+                "rol": "Pastor",
+                "miembro": "",
+            },
+        )
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "No puedes cambiar tu propio rol")
+
+    def test_no_se_puede_dejar_sin_administrador_activo(self):
+        segundo = Usuario.objects.create_user("segundo-admin@test.local", "secreto123", nombre="Segundo")
+        segundo.groups.add(Group.objects.get(name=ROL_ADMINISTRADOR))
+        self.client.force_login(self.admin)
+        segundo.activo = False
+        segundo.save(update_fields=("activo",))
+        respuesta = self.client.post(reverse("usuario_desactivar", args=[self.admin.pk]))
+        self.assertRedirects(respuesta, reverse("usuarios"))
+        self.admin.refresh_from_db()
+        self.assertTrue(self.admin.activo)
+
+    def test_formulario_muestra_errores_de_contraseñas(self):
+        self.client.force_login(self.admin)
+        respuesta = self.client.post(
+            reverse("usuario_crear"),
+            {
+                "correo": "nuevo@test.local",
+                "nombre": "",
+                "activo": "on",
+                "rol": ROL_PASTOR,
+                "miembro": "",
+                "password1": "abc",
+                "password2": "def",
+            },
+        )
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "Las contraseñas no coinciden")
+        self.assertContains(respuesta, "is-invalid")
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_recuperacion_de_contrasena_completa(self):
+        self.client.post(reverse("password_reset"), {"email": self.admin.correo})
+        self.assertEqual(len(mail.outbox), 1)
+        enlace = next(line for line in mail.outbox[0].body.splitlines() if "password-reset/" in line)
+        respuesta = self.client.get(enlace, follow=True)
+        self.assertEqual(respuesta.status_code, 200)
+        token_url = respuesta.request["PATH_INFO"]
+        respuesta = self.client.post(
+            token_url,
+            {"new_password1": "NuevaClave123!", "new_password2": "NuevaClave123!"},
+        )
+        self.assertEqual(respuesta.status_code, 302)
+        self.assertTrue(self.admin.__class__.objects.get(pk=self.admin.pk).check_password("NuevaClave123!"))
+
+    def test_cache_logout_y_errores_personalizados(self):
+        self.client.force_login(self.admin)
+        respuesta = self.client.get(reverse("usuarios"))
+        self.assertEqual(respuesta.headers["Cache-Control"], "no-store, no-cache, private")
+        self.assertEqual(self.client.get("/ruta-inexistente/").status_code, 404)
+        self.assertContains(self.client.get("/ruta-inexistente/"), "Página no encontrada", status_code=404)
+        self.assertEqual(self.client.get(reverse("usuario_desactivar", args=[self.usuario.pk])).status_code, 405)
+        self.assertEqual(self.client.post(reverse("logout")).status_code, 302)
+
 
 class AutenticacionYRolesTests(TestCase):
     def setUp(self):
@@ -76,6 +149,11 @@ class AutenticacionYRolesTests(TestCase):
         self.assertEqual(self.client.get(reverse("usuarios")).status_code, 200)
         self.client.force_login(self.pastor)
         self.assertEqual(self.client.get(reverse("usuarios")).status_code, 403)
+
+    def test_403_personalizado(self):
+        self.client.force_login(self.pastor)
+        respuesta = self.client.get(reverse("usuarios"))
+        self.assertContains(respuesta, "No tienes permisos", status_code=403)
 
     def test_usuario_desactivado_no_puede_iniciar_sesion(self):
         self.pastor.activo = False

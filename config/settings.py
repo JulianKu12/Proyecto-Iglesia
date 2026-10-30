@@ -41,6 +41,8 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "core.middleware.NoCacheAuthenticatedMiddleware",
+    "core.middleware.FriendlyMethodNotAllowedMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -92,4 +94,5 @@ LOGIN_URL = "/cuentas/login/"
 LOGIN_REDIRECT_URL = "inicio"
 LOGOUT_REDIRECT_URL = "login"
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+PASSWORD_RESET_TIMEOUT = 3600
 TEMPLATES[0]["OPTIONS"]["context_processors"].append("institution.context_processors.iglesia")
