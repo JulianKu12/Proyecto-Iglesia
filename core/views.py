@@ -15,10 +15,33 @@ class InicioView(LoginRequiredMixin, View):
         from django.utils import timezone
         from events.models import Evento
         hoy = timezone.localdate()
+        from .services import dashboard_data
+        data = dashboard_data(request.user)
+        tarjetas = [
+            ("Miembros activos", data["miembros_activos"]),
+            ("Eventos próximos", data["eventos_proximos"]),
+        ]
+        if data["asistencia_total"] is not None and not request.user.groups.filter(name="Tesorero").exists():
+            tarjetas.append(("Asistencias del mes", data["asistencia_mes"]))
+        if not request.user.groups.filter(name="Coordinador").exists() and not request.user.groups.filter(name="Tesorero").exists():
+            tarjetas.append(("Ministerios activos", data["ministerios_activos"]))
+        if data["ingresos"] is not None:
+            tarjetas.append(("Ingresos del mes", data["ingresos"]["total"]))
+        data["tarjetas"] = tarjetas
+        data["graficas"] = []
+        if not request.user.groups.filter(name="Tesorero").exists():
+            data["graficas"].append({"id": "asistencia-chart", "titulo": "Asistencia", "datos": data["asistencia_grafica"]})
+        if not request.user.groups.filter(name="Tesorero").exists():
+            data["graficas"].append({"id": "ministerios-chart", "titulo": "Integrantes por ministerio", "datos": data["integrantes_grafica"]})
+        if data["ingresos_grafica"] is not None:
+            data["graficas"].append({"id": "ingresos-chart", "titulo": "Ingresos últimos 6 meses", "datos": data["ingresos_grafica"]})
+        if not request.user.groups.filter(name="Coordinador").exists():
+            data["graficas"].append({"id": "altas-chart", "titulo": "Altas de miembros", "datos": data["altas_grafica"]})
         return render(
             request,
             self.template_name,
             {
+                **data,
                 "proximos_eventos": Evento.objects.filter(
                     fecha__gte=hoy, estado=Evento.ESTADO_PROGRAMADO
                 ).order_by("fecha", "hora")[:5],

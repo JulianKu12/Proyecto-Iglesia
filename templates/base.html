@@ -28,6 +28,7 @@
             {% endif %}
             <a class="nav-link" href="{% url 'anuncios' %}">Anuncios</a>
             {% if puede_ver_finanzas %}<a class="nav-link" href="{% url 'aportaciones' %}">Finanzas</a>{% endif %}
+            {% if user.groups.all.0.name == "Administrador" or user.groups.all.0.name == "Pastor" or user.groups.all.0.name == "Secretario" or user.groups.all.0.name == "Tesorero" or user.groups.all.0.name == "Coordinador" %}<a class="nav-link" href="{% url 'reportes' %}">Reportes</a>{% endif %}
         </div>
         <form class="ms-auto" method="post" action="{% url 'logout' %}">
             {% csrf_token %}

@@ -31,6 +31,7 @@ urlpatterns = [
     path("asistencia/", include("attendance.urls")),
     path("finanzas/", include("finance.urls")),
     path("anuncios/", include("announcements.urls")),
+    path("reportes/", include("reports.urls")),
 ]
 
 handler403 = "core.permissions.permission_denied"
