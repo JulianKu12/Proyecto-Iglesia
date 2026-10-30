@@ -1,22 +1,13 @@
 from io import BytesIO
-from openpyxl import Workbook
-from openpyxl.styles import Font, PatternFill
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4, landscape
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.lib import colors
 import os
 
 _FONT = "Vera"
-_FONT_PATH = os.path.join(os.path.dirname(__import__("reportlab").__file__), "fonts", "Vera.ttf")
-if os.path.exists(_FONT_PATH):
-    pdfmetrics.registerFont(TTFont(_FONT, _FONT_PATH))
 
 
 def excel_response(title, headers, rows, filename, iglesia):
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill
+
     wb = Workbook()
     ws = wb.active
     ws.title = "Reporte"
@@ -42,6 +33,16 @@ def excel_response(title, headers, rows, filename, iglesia):
 
 
 def pdf_response(title, headers, rows, filename, iglesia, usuario):
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4, landscape
+    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+
+    font_path = os.path.join(os.path.dirname(__import__("reportlab").__file__), "fonts", "Vera.ttf")
+    if os.path.exists(font_path) and _FONT not in pdfmetrics.getRegisteredFontNames():
+        pdfmetrics.registerFont(TTFont(_FONT, font_path))
     output = BytesIO()
     doc = SimpleDocTemplate(output, pagesize=landscape(A4))
     styles = getSampleStyleSheet()
