@@ -15,6 +15,10 @@ class Command(BaseCommand):
     help = "Carga miembros ficticios para desarrollo."
 
     def handle(self, *args, **options):
+        from django.conf import settings
+        if not settings.DEBUG:
+            self.stderr.write(self.style.ERROR("cargar_datos_demo solo está disponible con DEBUG=True."))
+            return
         if not Miembro.objects.exists():
             miembros = [
                 Miembro(

@@ -1,3 +1,5 @@
+import logging
+
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
 
@@ -50,6 +52,7 @@ def page_not_found(request, exception=None):
 
 
 def server_error(request):
+    logging.getLogger("django.request").exception("Error 500 al procesar una solicitud.")
     return render(request, "500.html", status=500)
 
 

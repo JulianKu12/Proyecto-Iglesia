@@ -202,3 +202,20 @@ class AutenticacionYRolesTests(TestCase):
         self.pastor.activo = False
         self.pastor.save()
         self.assertFalse(self.client.login(correo="pastor@iglesia.test", password="secreto123"))
+
+    def test_bloqueo_por_intentos_fallidos(self):
+        from django.core.cache import cache
+
+        cache.clear()
+        for _ in range(5):
+            respuesta = self.client.post(
+                reverse("login"),
+                {"username": "admin@iglesia.test", "password": "incorrecta"},
+            )
+        self.assertContains(respuesta, "Demasiados intentos fallidos")
+        respuesta = self.client.post(
+            reverse("login"),
+            {"username": "admin@iglesia.test", "password": "secreto123"},
+        )
+        self.assertContains(respuesta, "Demasiados intentos fallidos")
+        cache.clear()

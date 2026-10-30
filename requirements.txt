@@ -1,4 +1,4 @@
-Django>=6.0,<7.0
-Pillow>=11.0,<13.0
-openpyxl>=3.1,<4.0
-reportlab>=4.0,<6.0
+Django==6.1.2
+Pillow==12.3.0
+openpyxl==3.1.5
+reportlab==5.1.0

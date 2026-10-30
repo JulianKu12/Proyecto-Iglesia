@@ -1,62 +1,137 @@
 # Proyecto Iglesia
 
-Sistema web monolÃ­tico para la gestiÃ³n de una iglesia, construido con Django y plantillas Bootstrap 5.
+Sistema web monolítico para la gestión de una iglesia, construido con Django, SQLite, plantillas Bootstrap 5 y zona horaria `America/Merida`.
 
 ## Requisitos
 
+- Windows 10/11.
 - Python 3.13 o superior.
-- SQLite (incluido con Python).
+- PowerShell.
+- SQLite, incluido con Python.
 
-## InstalaciÃ³n
+Las dependencias están fijadas en [requirements.txt](requirements.txt).
 
-Desde esta carpeta:
+## Instalación en Windows
+
+Desde la carpeta del proyecto:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
+Copy-Item .env.example .env
 ```
 
-Configura un archivo `.env` **fuera del repositorio**, en la carpeta padre `U2`:
+Edita `.env` y sustituye `SECRET_KEY` por una clave larga y aleatoria. El archivo `.env` no debe subirse al repositorio.
+
+Inicializa la base:
+
+```powershell
+.\.venv\Scripts\python.exe manage.py migrate
+.\.venv\Scripts\python.exe manage.py crear_administrador --correo admin@iglesia.local --nombre "Administrador" --contraseña "Usa-una-clave-segura"
+```
+
+Ejecuta el servidor:
+
+```powershell
+.\.venv\Scripts\python.exe manage.py runserver
+```
+
+Abre <http://127.0.0.1:8000/cuentas/login/>.
+
+## Configuración de `.env`
+
+En desarrollo usa:
 
 ```env
-SECRET_KEY=una-clave-secreta
 DEBUG=True
+SECRET_KEY=una-clave-larga-y-secreta
+ALLOWED_HOSTS=127.0.0.1,localhost
+CSRF_TRUSTED_ORIGINS=
+EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 ```
 
-El proyecto carga esas variables automÃ¡ticamente. El correo de recuperaciÃ³n se muestra en la consola mediante el backend de correo de desarrollo.
+En producción configura `DEBUG=False`, una `SECRET_KEY` obligatoria, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS` con URLs HTTPS y las variables `EMAIL_*`. Activa HTTPS con `SECURE_SSL_REDIRECT=True`, `SESSION_COOKIE_SECURE=True` y `CSRF_COOKIE_SECURE=True`.
 
-### Dónde ver el correo de recuperación en desarrollo
+La sesión expira después de dos horas de inactividad por defecto. Se puede ajustar con `SESSION_COOKIE_AGE`.
 
-Con `EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend` (valor predeterminado), el enlace de recuperación se imprime en la terminal donde ejecutas `python manage.py runserver`.
+## Datos de demostración
 
-Para usar SMTP real, configura estas variables en el `.env` fuera del repositorio:
-
-```env
-EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
-EMAIL_HOST=smtp.ejemplo.com
-EMAIL_PORT=587
-EMAIL_HOST_USER=usuario-smtp
-EMAIL_HOST_PASSWORD=contraseña-smtp
-EMAIL_USE_TLS=True
-EMAIL_USE_SSL=False
-DEFAULT_FROM_EMAIL=no-reply@iglesia.mx
-```
-
-## Puesta en marcha
+Solo con `DEBUG=True`:
 
 ```powershell
-python manage.py migrate
-python manage.py crear_administrador --correo admin@iglesia.mx --nombre "Administrador" --contraseÃ±a "cambia-esta-clave"
-python manage.py runserver
+.\.venv\Scripts\python.exe manage.py cargar_datos_demo
 ```
 
-Entra a `http://127.0.0.1:8000/cuentas/login/`.
+El comando es idempotente y no crea usuarios ni contraseñas.
 
-## Pruebas
+## Pruebas y respaldo
 
 ```powershell
-python manage.py test
+.\.venv\Scripts\python.exe manage.py check
+.\.venv\Scripts\python.exe manage.py check --deploy
+.\.venv\Scripts\python.exe manage.py makemigrations --check
+.\.venv\Scripts\python.exe manage.py test
 ```
 
-Los roles disponibles son Administrador, Pastor, Secretario, Tesorero y Coordinador. Cada usuario debe tener un solo grupo/rol; solo Administrador puede gestionar usuarios.
+Crea un respaldo SQLite consistente con la API de respaldo:
+
+```powershell
+.\.venv\Scripts\python.exe manage.py respaldar_bd
+```
+
+Los respaldos se guardan en `respaldos/` y se conservan los diez más recientes. Los errores de aplicación se registran en `logs/app.log` con rotación. Ambas carpetas están excluidas de Git.
+
+El correo de recuperación se muestra en la terminal cuando `EMAIL_BACKEND` usa `django.core.mail.backends.console.EmailBackend`.
+
+## Estructura
+
+- `accounts/`: usuarios, autenticación y roles.
+- `members/`: miembros y comandos de gestión.
+- `institution/`: configuración de la iglesia y horarios.
+- `ministries/`: ministerios e integrantes.
+- `events/`: eventos y calendario.
+- `attendance/`: asistencia e historial.
+- `finance/`: aportaciones y resúmenes financieros.
+- `announcements/`: anuncios.
+- `reports/`: reportes y exportaciones.
+- `core/`: permisos, dashboard, middleware y servicios comunes.
+- `templates/`: plantillas HTML.
+- `static/`: tema CSS, favicon y recursos estáticos.
+
+## Roles y permisos
+
+| Rol | Acceso principal |
+|---|---|
+| Administrador | Administración, miembros, ministerios, eventos, asistencia, finanzas, anuncios y reportes |
+| Pastor | Consulta de miembros, ministerios, eventos, asistencia, finanzas, anuncios y reportes |
+| Secretario | Gestión de miembros, ministerios, eventos, asistencia y anuncios; sin finanzas |
+| Tesorero | Consulta de miembros, eventos, finanzas y reportes de ingresos |
+| Coordinador | Sus ministerios, sus miembros, sus eventos, asistencia de su alcance y reportes permitidos |
+
+El servidor valida todos los permisos. El menú únicamente oculta opciones como cortesía.
+
+## Requisitos funcionales
+
+| RF | Estado | Pantalla principal | Prueba automática |
+|---|---|---|---|
+| RF-01 | Completo | `/cuentas/login/`, `/cuentas/usuarios/` | `accounts/tests.py` |
+| RF-02 | Completo | `/miembros/` | `members/tests.py` |
+| RF-03 | Completo | `/asistencia/registrar/` | `attendance/tests.py` |
+| RF-04 | Completo | `/eventos/`, `/eventos/calendario/` | `events/tests.py` |
+| RF-05 | Completo | `/ministerios/` | `ministries/tests.py` |
+| RF-06 | Completo | `/finanzas/` | `finance/tests.py` |
+| RF-07 | Completo | `/anuncios/` | `announcements/tests.py` |
+| RF-08 | Completo | `/` | `reports/tests.py` y `announcements/tests.py` |
+| RF-09 | Completo | `/reportes/` | `reports/tests.py` |
+| RF-10 | Completo | `/institucion/` | `institution/tests.py` |
+
+## Solución de problemas
+
+- **Falta `SECRET_KEY` con `DEBUG=False`**: agrega una clave larga en `.env`.
+- **`DisallowedHost`**: agrega el host a `ALLOWED_HOSTS`.
+- **Error CSRF**: agrega el origen HTTPS completo a `CSRF_TRUSTED_ORIGINS`.
+- **No carga el tema visual**: ejecuta el servidor desde la raíz y usa `Ctrl+F5`; `STATICFILES_DIRS` apunta a `static/`.
+- **No llega el correo de recuperación**: en desarrollo revisa la terminal donde corre `runserver`.
+- **No se pueden abrir exportaciones**: instala el entorno con `python -m pip install -r requirements.txt`.
+- **El servidor redirige por HTTPS en local**: usa `SECURE_SSL_REDIRECT=False` y las cookies seguras en `False` únicamente durante desarrollo HTTP.

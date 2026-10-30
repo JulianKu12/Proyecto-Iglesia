@@ -24,6 +24,10 @@ class ReportesView(RoleRequiredMixin, View):
     def get(self, request):
         tipo = request.GET.get("tipo", "miembros")
         if tipo not in REPORTS or not request.user.groups.filter(name__in=REPORTS[tipo][1]).exists():
+            disponibles = [clave for clave, (_, roles, _) in REPORTS.items() if request.user.groups.filter(name__in=roles).exists()]
+            if request.GET.get("tipo") is None and disponibles:
+                tipo = disponibles[0]
+        if tipo not in REPORTS or not request.user.groups.filter(name__in=REPORTS[tipo][1]).exists():
             raise PermissionDenied
         if tipo == "ingresos" and not puede_ver_finanzas(request.user):
             raise PermissionDenied

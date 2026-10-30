@@ -2,7 +2,6 @@ from datetime import date
 from django.db.models import Count, Q
 from attendance.services import resumen_periodo
 from events.models import Evento
-from finance.services import resumen_periodo as resumen_finanzas
 from members.models import Miembro
 from ministries.models import Ministerio
 from finance.models import Aportacion
