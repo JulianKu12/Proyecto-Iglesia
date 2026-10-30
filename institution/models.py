@@ -28,7 +28,19 @@ class ConfiguracionIglesia(models.Model):
 
     def save(self, *args, **kwargs):
         self.pk = 1
-        return super().save(*args, **kwargs)
+        logotipo_anterior = None
+        configuracion_anterior = type(self).objects.filter(pk=self.pk).first()
+        if (
+            configuracion_anterior
+            and configuracion_anterior.logotipo
+            and configuracion_anterior.logotipo.name != self.logotipo.name
+        ):
+            logotipo_anterior = configuracion_anterior.logotipo
+
+        resultado = super().save(*args, **kwargs)
+        if logotipo_anterior:
+            logotipo_anterior.storage.delete(logotipo_anterior.name)
+        return resultado
 
     def __str__(self):
         return self.nombre
