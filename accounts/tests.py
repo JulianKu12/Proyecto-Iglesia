@@ -158,6 +158,11 @@ class RutasUsuariosTests(TestCase):
         self.assertEqual(respuesta.status_code, 302)
         self.assertTrue(self.admin.__class__.objects.get(pk=self.admin.pk).check_password("NuevaClave123!"))
 
+    def test_correo_no_registrado_no_revela_si_existe(self):
+        respuesta = self.client.post(reverse("password_reset"), {"email": "no-existe@test.local"})
+        self.assertRedirects(respuesta, reverse("password_reset_done"))
+        self.assertContains(self.client.get(reverse("password_reset_done")), "Si el correo está registrado")
+
     def test_cache_logout_y_errores_personalizados(self):
         self.client.force_login(self.admin)
         respuesta = self.client.get(reverse("usuarios"))

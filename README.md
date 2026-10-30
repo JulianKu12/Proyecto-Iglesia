@@ -84,6 +84,21 @@ Los respaldos se guardan en `respaldos/` y se conservan los diez más recientes.
 
 El correo de recuperación se muestra en la terminal cuando `EMAIL_BACKEND` usa `django.core.mail.backends.console.EmailBackend`.
 
+Para que las personas reciban el enlace en su correo, configura un servidor SMTP real en `.env`:
+
+```env
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=smtp.tu-proveedor.com
+EMAIL_PORT=587
+EMAIL_HOST_USER=tu-cuenta@tu-dominio.com
+EMAIL_HOST_PASSWORD=tu-contraseña-o-clave-de-aplicación
+EMAIL_USE_TLS=True
+EMAIL_USE_SSL=False
+DEFAULT_FROM_EMAIL=tu-cuenta@tu-dominio.com
+```
+
+La pantalla de recuperación muestra el mismo resultado para correos registrados y no registrados. Esto es intencional: evita que alguien descubra qué cuentas existen en el sistema.
+
 ## Estructura
 
 - `accounts/`: usuarios, autenticación y roles.
