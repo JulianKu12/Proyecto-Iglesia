@@ -66,6 +66,7 @@ class RutasUsuariosTests(TestCase):
         self.assertRedirects(respuesta, reverse("usuarios"))
         self.admin.refresh_from_db()
         self.assertTrue(self.admin.activo)
+        self.assertIn("No puedes desactivar tu propia cuenta.", list(respuesta.wsgi_request._messages)[0].message)
         respuesta = self.client.post(
             reverse("usuario_editar", args=[self.admin.pk]),
             {
@@ -78,6 +79,37 @@ class RutasUsuariosTests(TestCase):
         )
         self.assertEqual(respuesta.status_code, 200)
         self.assertContains(respuesta, "No puedes cambiar tu propio rol")
+
+    def test_admin_puede_editarse_nombre_y_correo_sin_cambiar_rol(self):
+        self.client.force_login(self.admin)
+        respuesta = self.client.post(
+            reverse("usuario_editar", args=[self.admin.pk]),
+            {
+                "correo": "admin-editado@test.local",
+                "nombre": "Admin Editado",
+                "activo": "on",
+                "rol": ROL_ADMINISTRADOR,
+                "miembro": "",
+            },
+        )
+        self.assertRedirects(respuesta, reverse("usuarios"))
+        self.admin.refresh_from_db()
+        self.assertEqual(self.admin.nombre, "Admin Editado")
+
+    def test_admin_puede_cambiar_rol_de_usuario_no_administrador(self):
+        self.client.force_login(self.admin)
+        respuesta = self.client.post(
+            reverse("usuario_editar", args=[self.usuario.pk]),
+            {
+                "correo": self.usuario.correo,
+                "nombre": self.usuario.nombre,
+                "activo": "on",
+                "rol": ROL_PASTOR,
+                "miembro": "",
+            },
+        )
+        self.assertRedirects(respuesta, reverse("usuarios"))
+        self.assertTrue(self.usuario.__class__.objects.get(pk=self.usuario.pk).groups.filter(name=ROL_PASTOR).exists())
 
     def test_no_se_puede_dejar_sin_administrador_activo(self):
         segundo = Usuario.objects.create_user("segundo-admin@test.local", "secreto123", nombre="Segundo")
@@ -131,6 +163,14 @@ class RutasUsuariosTests(TestCase):
         self.assertContains(self.client.get("/ruta-inexistente/"), "Página no encontrada", status_code=404)
         self.assertEqual(self.client.get(reverse("usuario_desactivar", args=[self.usuario.pk])).status_code, 405)
         self.assertEqual(self.client.post(reverse("logout")).status_code, 302)
+
+    @override_settings(DEBUG=False)
+    def test_errores_personalizados_con_debug_falso(self):
+        respuesta = self.client.get("/ruta-inexistente/")
+        self.assertContains(respuesta, "Página no encontrada", status_code=404)
+        self.client.force_login(self.usuario)
+        respuesta = self.client.get(reverse("usuarios"))
+        self.assertContains(respuesta, "No tienes permisos", status_code=403)
 
 
 class AutenticacionYRolesTests(TestCase):

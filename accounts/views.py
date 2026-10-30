@@ -59,7 +59,7 @@ class UsuarioUpdateView(RoleRequiredMixin, View):
         form.request_user = request.user
         if form.is_valid():
             rol_nuevo = form.cleaned_data["rol"]
-            if usuario.activo and (
+            if usuario.activo and usuario.groups.filter(name="Administrador").exists() and (
                 rol_nuevo != "Administrador" or not form.cleaned_data["activo"]
             ) and _administradores_activos() <= 1:
                 form.add_error("rol", "Debe existir al menos un Administrador activo.")
@@ -76,7 +76,7 @@ class UsuarioDeactivateView(RoleRequiredMixin, View):
     def post(self, request, pk):
         usuario = get_object_or_404(Usuario, pk=pk)
         if usuario == request.user:
-            messages.error(request, "No puedes desactivarte a ti mismo.")
+            messages.error(request, "No puedes desactivar tu propia cuenta.")
             return redirect("usuarios")
         if usuario.groups.filter(name="Administrador").exists() and usuario.activo and _administradores_activos() <= 1:
             messages.error(request, "Debe existir al menos un Administrador activo.")

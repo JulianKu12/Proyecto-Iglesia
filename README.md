@@ -26,6 +26,23 @@ DEBUG=True
 
 El proyecto carga esas variables automÃ¡ticamente. El correo de recuperaciÃ³n se muestra en la consola mediante el backend de correo de desarrollo.
 
+### Dónde ver el correo de recuperación en desarrollo
+
+Con `EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend` (valor predeterminado), el enlace de recuperación se imprime en la terminal donde ejecutas `python manage.py runserver`.
+
+Para usar SMTP real, configura estas variables en el `.env` fuera del repositorio:
+
+```env
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=smtp.ejemplo.com
+EMAIL_PORT=587
+EMAIL_HOST_USER=usuario-smtp
+EMAIL_HOST_PASSWORD=contraseña-smtp
+EMAIL_USE_TLS=True
+EMAIL_USE_SSL=False
+DEFAULT_FROM_EMAIL=no-reply@iglesia.mx
+```
+
 ## Puesta en marcha
 
 ```powershell

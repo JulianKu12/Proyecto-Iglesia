@@ -85,6 +85,14 @@ class MiembrosPermisosYFiltrosTests(TestCase):
         self.assertContains(respuesta, "estado=activos")
         self.assertContains(respuesta, "q=Persona")
 
+    def test_limpiar_filtros_restablece_activos_y_busqueda(self):
+        self.client.force_login(self.usuarios[ROL_PASTOR])
+        respuesta = self.client.get(reverse("miembros") + "?q=Ana&estado=inactivos")
+        self.assertContains(respuesta, "Limpiar filtros")
+        respuesta = self.client.get(reverse("miembros"))
+        self.assertEqual(respuesta.context["estado"], "activos")
+        self.assertEqual(respuesta.context["busqueda"], "")
+
     def test_edicion_precarga_fecha_en_formato_iso(self):
         self.client.force_login(self.usuarios[ROL_ADMINISTRADOR])
         respuesta = self.client.get(reverse("miembro_editar", args=[self.miembro.pk]))
