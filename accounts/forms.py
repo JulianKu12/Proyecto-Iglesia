@@ -25,8 +25,8 @@ class BootstrapErrorsMixin:
 
 
 class CorreoRecuperacion(EmailMultiAlternatives):
-    def message(self):
-        mensaje = super().message()
+    def message(self, policy=None):
+        mensaje = super().message(policy=policy)
         mensaje.set_content(self.body, subtype="plain", charset="us-ascii", cte="7bit")
         return mensaje
 
