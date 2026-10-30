@@ -7,7 +7,13 @@ from django.urls import reverse
 from openpyxl import load_workbook
 
 from accounts.models import Usuario
-from core.permissions import ROL_ADMINISTRADOR, ROL_COORDINADOR, ROL_SECRETARIO
+from core.permissions import (
+    ROL_ADMINISTRADOR,
+    ROL_COORDINADOR,
+    ROL_PASTOR,
+    ROL_SECRETARIO,
+    ROL_TESORERO,
+)
 from members.models import Miembro
 
 
@@ -15,7 +21,7 @@ class ReportesYDashboardTests(TestCase):
     def setUp(self):
         Miembro.objects.create(nombre_completo="José Álvarez", fecha_ingreso=date.today())
         self.usuarios = {}
-        for rol in (ROL_ADMINISTRADOR, ROL_SECRETARIO, ROL_COORDINADOR):
+        for rol in (ROL_ADMINISTRADOR, ROL_PASTOR, ROL_SECRETARIO, ROL_TESORERO, ROL_COORDINADOR):
             usuario = Usuario.objects.create_user(f"{rol.lower()}@reportes.test", "secreto123", nombre=rol)
             usuario.groups.add(Group.objects.get(name=rol))
             self.usuarios[rol] = usuario
@@ -43,3 +49,17 @@ class ReportesYDashboardTests(TestCase):
         for rol in (ROL_SECRETARIO, ROL_COORDINADOR):
             self.client.force_login(self.usuarios[rol])
             self.assertEqual(self.client.get(reverse("reportes"), {"tipo": "ingresos"}).status_code, 403)
+
+    def test_rutas_principales_no_producen_error_500_por_rol(self):
+        rutas = (
+            "inicio", "miembros", "ministerios", "eventos", "calendario",
+            "asistencia_registrar", "asistencia_historial", "asistencia_resumen",
+            "anuncios", "reportes", "aportaciones", "finanzas_resumen",
+            "finanzas_periodo", "institucion",
+        )
+        for rol, usuario in self.usuarios.items():
+            self.client.force_login(usuario)
+            for ruta in rutas:
+                with self.subTest(rol=rol, ruta=ruta):
+                    response = self.client.get(reverse(ruta))
+                    self.assertNotEqual(response.status_code, 500)
