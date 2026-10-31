@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}{% if ministerio %}Editar ministerio{% else %}Nuevo ministerio{% endif %}{% endblock %}
+{% block content %}
+<h1>{% if ministerio %}Editar ministerio{% else %}Nuevo ministerio{% endif %}</h1>
+<form method="post" novalidate>{% csrf_token %}{% include "includes/form_fields.html" with form=form %}<div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Guardar</button><a class="btn btn-outline-secondary" href="{% if ministerio %}{% url 'ministerio_detalle' ministerio.pk %}{% else %}{% url 'ministerios' %}{% endif %}">Cancelar</a></div></form>
+{% endblock %}

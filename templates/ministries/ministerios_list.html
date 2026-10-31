@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Ministerios{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3"><h1>Ministerios</h1>{% if user.groups.all.0.name == "Administrador" or user.groups.all.0.name == "Pastor" or user.groups.all.0.name == "Secretario" %}<a class="btn btn-primary" href="{% url 'ministerio_crear' %}">Nuevo ministerio</a>{% endif %}</div>
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-6"><label class="visually-hidden" for="q">Buscar</label><input id="q" name="q" class="form-control" value="{{ busqueda }}" placeholder="Buscar por nombre"></div>
+    <div class="col-md-3"><select name="estado" class="form-select"><option value="activos" {% if estado == "activos" %}selected{% endif %}>Activos</option><option value="inactivos" {% if estado == "inactivos" %}selected{% endif %}>Inactivos</option><option value="todos" {% if estado == "todos" %}selected{% endif %}>Todos</option></select></div>
+    <div class="col-md-3 d-flex gap-2"><button class="btn btn-outline-primary" type="submit">Buscar</button><a class="btn btn-outline-secondary" href="{% url 'ministerios' %}">Limpiar filtros</a></div>
+</form>
+<table class="table table-striped"><thead><tr><th>Nombre</th><th>Coordinador</th><th>Integrantes activos</th><th>Estado</th></tr></thead><tbody>
+{% for ministerio in ministerios %}<tr><td><a href="{% url 'ministerio_detalle' ministerio.pk %}">{{ ministerio.nombre }}</a></td><td>{{ ministerio.coordinador.nombre|default:"Sin coordinador" }}</td><td>{{ ministerio.integrantes_activos_count }}</td><td>{% if ministerio.activo %}Activo{% else %}Inactivo{% endif %}</td></tr>{% empty %}<tr><td colspan="4">No hay ministerios.</td></tr>{% endfor %}
+</tbody></table>
+{% if page_obj.has_other_pages %}<nav><ul class="pagination">{% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?q={{ busqueda|urlencode }}&estado={{ estado }}&page={{ page_obj.previous_page_number }}">Anterior</a></li>{% endif %}<li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>{% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?q={{ busqueda|urlencode }}&estado={{ estado }}&page={{ page_obj.next_page_number }}">Siguiente</a></li>{% endif %}</ul></nav>{% endif %}
+{% endblock %}

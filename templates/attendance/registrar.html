@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load attendance_tags %}
+{% block title %}Registrar asistencia{% endblock %}
+{% block content %}
+<h1>Registrar asistencia</h1>
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-4"><label for="fecha">Fecha</label><input id="fecha" type="date" name="fecha" value="{{ fecha|date:'Y-m-d' }}" class="form-control"></div>
+    <div class="col-md-5"><label for="evento">Evento</label><select id="evento" name="evento" class="form-select"><option value="">Selecciona un evento</option>{% for item in eventos %}<option value="{{ item.pk }}" {% if evento.pk == item.pk %}selected{% endif %}>{{ item.titulo }} - {{ item.hora|time:"H:i" }}</option>{% endfor %}</select></div>
+    <div class="col-md-3 d-flex align-items-end"><button class="btn btn-primary">Mostrar lista</button></div>
+</form>
+{% if not eventos %}<div class="alert alert-info">No hay eventos no cancelados disponibles para esa fecha.</div>{% endif %}
+{% if es_futuro %}<div class="alert alert-warning">No se puede registrar asistencia de fechas futuras.</div>{% endif %}
+{% if evento %}
+<form method="post" id="form-asistencia">{% csrf_token %}<input type="hidden" name="evento_id" value="{{ evento.pk }}"><input type="hidden" name="fecha" value="{{ fecha|date:'Y-m-d' }}">
+<div class="d-flex flex-wrap gap-2 align-items-end mb-3"><div><label for="buscar-miembro">Buscar miembro</label><input id="buscar-miembro" class="form-control" placeholder="Escribe un nombre"></div><button type="button" class="btn btn-outline-success" id="marcar-todos">Marcar todos</button><button type="button" class="btn btn-outline-secondary" id="desmarcar-todos">Desmarcar todos</button><span class="badge text-bg-primary" id="contador-presentes">Presentes: 0</span><span class="badge text-bg-secondary" id="contador-ausentes">Ausentes: 0</span><span class="badge text-bg-dark" id="contador-total">Total: 0</span></div>
+<div class="list-group mb-3" id="lista-miembros">{% for miembro in miembros %}{% with registro=registros|get_item:miembro.pk %}<label class="list-group-item d-flex gap-2 miembro-fila" data-nombre="{{ miembro.nombre_completo|lower }}"><input class="form-check-input asistencia-checkbox" type="checkbox" name="presente_{{ miembro.pk }}" {% if registro and registro.presente %}checked{% endif %} {% if not miembro.activo %}disabled{% endif %}><span>{{ miembro.nombre_completo }} {% if not miembro.activo %}<span class="badge text-bg-warning">Inactivo</span>{% endif %}</span></label>{% endwith %}{% empty %}<p>No hay miembros disponibles para este evento.</p>{% endfor %}</div>
+<button class="btn btn-primary" type="submit">Guardar asistencia</button> <a class="btn btn-outline-secondary" href="{% url 'eventos' %}">Cancelar</a>
+</form>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const checks = Array.from(document.querySelectorAll(".asistencia-checkbox"));
+  const update = function () { const visibles = checks.filter(c => c.closest(".miembro-fila").style.display !== "none"); document.getElementById("contador-presentes").textContent = "Presentes: " + checks.filter(c => c.checked).length; document.getElementById("contador-ausentes").textContent = "Ausentes: " + (checks.length - checks.filter(c => c.checked).length); document.getElementById("contador-total").textContent = "Total: " + checks.length; };
+  document.getElementById("buscar-miembro").addEventListener("input", function () { const texto = this.value.toLowerCase(); document.querySelectorAll(".miembro-fila").forEach(f => f.style.display = f.dataset.nombre.includes(texto) ? "" : "none"); update(); });
+  document.getElementById("marcar-todos").addEventListener("click", function () { checks.filter(c => !c.disabled).forEach(c => c.checked = true); update(); });
+  document.getElementById("desmarcar-todos").addEventListener("click", function () { checks.filter(c => !c.disabled).forEach(c => c.checked = false); update(); });
+  update();
+});
+</script>
+{% endif %}
+{% endblock %}

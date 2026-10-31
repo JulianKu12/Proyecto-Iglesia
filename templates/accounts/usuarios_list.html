@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Usuarios{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3"><h1>Usuarios</h1><a class="btn btn-primary" href="{% url 'usuario_crear' %}">Nuevo usuario</a></div>
+<table class="table table-striped"><thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th></th></tr></thead><tbody>
+{% for usuario in usuarios %}<tr><td>{{ usuario.nombre }}</td><td>{{ usuario.correo }}</td><td>{{ usuario.groups.all.0.name|default:"Sin rol" }}</td><td>{% if usuario.activo %}Activo{% else %}Inactivo{% endif %}</td><td><a href="{% url 'usuario_editar' usuario.pk %}">Editar</a>{% if usuario.activo %}<form class="d-inline" method="post" action="{% url 'usuario_desactivar' usuario.pk %}" data-confirm="¿Desactivar este usuario?">{% csrf_token %}<button class="btn btn-link p-0 ms-2" type="submit">Desactivar</button></form>{% else %}<form class="d-inline" method="post" action="{% url 'usuario_reactivar' usuario.pk %}">{% csrf_token %}<button class="btn btn-link p-0 ms-2" type="submit">Reactivar</button></form>{% endif %}</td></tr>{% empty %}<tr><td colspan="5">No hay usuarios.</td></tr>{% endfor %}
+</tbody></table>
+{% endblock %}

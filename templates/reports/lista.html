@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block content %}
+<h1>{{ titulo }}</h1>
+<div class="mb-3">{% for clave, datos in reportes.items %}<a class="btn btn-sm {% if clave == tipo %}btn-primary{% else %}btn-outline-primary{% endif %} me-1" href="?tipo={{ clave }}">{{ datos.0 }}</a>{% endfor %}</div>
+<form class="row g-2 mb-3" method="get">
+<input type="hidden" name="tipo" value="{{ tipo }}">
+<input class="form-control col" name="busqueda" placeholder="Buscar" value="{{ request.GET.busqueda }}">
+<input class="form-control col" type="date" name="desde" value="{{ request.GET.desde }}">
+<input class="form-control col" type="date" name="hasta" value="{{ request.GET.hasta }}">
+<button class="btn btn-primary col-auto">Filtrar</button>
+<a class="btn btn-outline-secondary col-auto" href="?tipo={{ tipo }}">Limpiar</a>
+<a class="btn btn-outline-success col-auto" href="?{{ request.GET.urlencode }}&export=excel">Excel</a>
+<a class="btn btn-outline-danger col-auto" href="?{{ request.GET.urlencode }}&export=pdf">PDF</a>
+</form>
+<div class="table-responsive"><table class="table table-striped"><thead><tr>{% for header in headers %}<th>{{ header }}</th>{% endfor %}</tr></thead><tbody>{% for fila in filas %}<tr>{% for value in fila.values %}<td>{{ value }}</td>{% endfor %}</tr>{% empty %}<tr><td colspan="20">Sin registros.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

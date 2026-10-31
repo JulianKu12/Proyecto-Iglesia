@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Acceso no permitido{% endblock %}
+{% block content %}
+<div class="text-center">
+    <h1 class="display-4">403</h1>
+    <p class="lead">No tienes permisos para acceder a esta sección.</p>
+    <a class="btn btn-primary" href="{% url 'inicio' %}">Volver al inicio</a>
+</div>
+{% endblock %}
