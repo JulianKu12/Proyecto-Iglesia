@@ -3,11 +3,24 @@
 {% endif %}
 {% for field in form %}
 {% if field.name != "DELETE" %}
-<div class="mb-3">
+<div class="{{ field_wrapper_class|default:'' }} mb-3 field-{{ field.name }}">
+    {% if field_label_class %}<div class="{{ field_label_class }}">{% endif %}
     {{ field.label_tag }}
+    {% if field_label_class %}</div><div class="{{ field_control_class }}">{% endif %}
+    {% if field.name == "logotipo" and field.value %}
+    <img class="logotipo-preview mb-2" src="{{ field.value.url }}" alt="Logotipo actual de la iglesia">
+    {% endif %}
+    {% if field.field.widget.input_type == "password" %}
+    <div class="input-group">
+        {{ field }}
+        <button class="btn btn-outline-secondary password-toggle" type="button" aria-label="Mostrar contraseña" aria-controls="{{ field.id_for_label }}" data-password-toggle><i class="bi bi-eye" aria-hidden="true"></i></button>
+    </div>
+    {% else %}
     {{ field }}
+    {% endif %}
     {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
     {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+    {% if field_label_class %}</div>{% endif %}
 </div>
 {% endif %}
 {% endfor %}

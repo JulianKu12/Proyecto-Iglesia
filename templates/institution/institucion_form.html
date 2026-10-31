@@ -1,3 +1,93 @@
 {% extends "base.html" %}
 {% block title %}Institución{% endblock %}
-{% block content %}<h1>Institución</h1><form method="post" enctype="multipart/form-data" id="institucion-form">{% csrf_token %}<div class="card card-body mb-4">{% with form=form %}{% include "includes/form_fields.html" %}{% endwith %}</div><h2>Horarios de reunión</h2>{{ horarios.management_form }}{% for horario in horarios %}<div class="card card-body mb-2 horario-row" data-new="{% if horario.instance.pk %}0{% else %}1{% endif %}">{% with form=horario %}{% include "includes/form_fields.html" %}{% endwith %}{% if horario.instance.pk %}<div>{{ horario.DELETE }} <label for="{{ horario.DELETE.id_for_label }}">Eliminar</label></div>{% else %}<button type="button" class="btn btn-outline-secondary quitar-fila">Quitar fila</button>{% endif %}</div>{% endfor %}<div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Guardar</button><a class="btn btn-outline-secondary" href="{% url 'inicio' %}">Cancelar</a></div></form><script>document.querySelectorAll('#institucion-form').forEach(function(form){form.addEventListener('submit',function(event){var checked=form.querySelector('input[name$="-DELETE"]:checked');if(checked&&!window.confirm('¿Eliminar los horarios marcados?'))event.preventDefault();});});document.querySelectorAll('.quitar-fila').forEach(function(button){button.addEventListener('click',function(){button.closest('.horario-row').querySelectorAll('input,select').forEach(function(input){if(input.type !== 'hidden')input.value='';});button.closest('.horario-row').style.display='none';});});</script>{% endblock %}
+{% block content %}
+<form method="post" enctype="multipart/form-data" id="institucion-form">
+    {% csrf_token %}
+    <div class="institution-form-shell">
+        <header class="institution-heading">
+            <h1 class="page-title">Institución</h1>
+            <p class="page-subtitle mb-4">Actualiza la información y los horarios de reunión.</p>
+        </header>
+        <section class="card card-body mb-4 institution-fields" aria-label="Información de la iglesia">
+            {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+            <h2 class="h5 mb-3 text-primary fw-bold">Datos generales</h2>
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <div class="mb-3">
+                        {{ form.nombre.label_tag }}
+                        {{ form.nombre }}
+                        {% for error in form.nombre.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.direccion.label_tag }}
+                        {{ form.direccion }}
+                        {% if form.direccion.help_text %}<div class="form-text">{{ form.direccion.help_text }}</div>{% endif %}
+                        {% for error in form.direccion.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="mb-3">
+                        {{ form.logotipo.label_tag }}
+                        {% if form.instance.logotipo %}
+                        <img class="logotipo-preview mb-2" src="{{ form.instance.logotipo.url }}" alt="Logotipo actual de la iglesia">
+                        {% endif %}
+                        {{ form.logotipo }}
+                        {% if form.logotipo.help_text %}<div class="form-text">{{ form.logotipo.help_text }}</div>{% endif %}
+                        {% for error in form.logotipo.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="mb-3">
+                        {{ form.telefono.label_tag }}
+                        {{ form.telefono }}
+                        {% for error in form.telefono.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="mb-3">
+                        {{ form.correo_contacto.label_tag }}
+                        {{ form.correo_contacto }}
+                        {% for error in form.correo_contacto.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                </div>
+            </div>
+        </section>
+        <h2 class="h4 mb-3">Horarios de reunión</h2>
+        {{ horarios.management_form }}
+        {% for horario in horarios %}
+        <section class="card card-body mb-3 horario-row" data-new="{% if horario.instance.pk %}0{% else %}1{% endif %}">
+            <div class="row g-3 align-items-center">
+                {% with form=horario field_wrapper_class="col-12 col-md-4" %}{% include "includes/form_fields.html" %}{% endwith %}
+                {% if horario.instance.pk %}
+                <div class="col-12 col-md-4 form-check horario-delete">{{ horario.DELETE }} <label class="form-check-label" for="{{ horario.DELETE.id_for_label }}">Eliminar</label></div>
+                {% else %}
+                <div class="col-12 col-md-4 d-flex justify-content-center justify-content-md-start">
+                    <button type="button" class="btn btn-outline-secondary quitar-fila">Quitar fila</button>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+        {% endfor %}
+        <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-primary" type="submit">Guardar</button>
+            <a class="btn btn-outline-secondary" href="{% url 'inicio' %}">Cancelar</a>
+        </div>
+    </div>
+</form>
+<script>
+document.querySelectorAll("#institucion-form").forEach(function (form) {
+    form.addEventListener("submit", function (event) {
+        var checked = form.querySelector('input[name$="-DELETE"]:checked');
+        if (checked && !window.confirm("¿Eliminar los horarios marcados?")) event.preventDefault();
+    });
+});
+document.querySelectorAll(".quitar-fila").forEach(function (button) {
+    button.addEventListener("click", function () {
+        button.closest(".horario-row").querySelectorAll("input,select").forEach(function (input) {
+            if (input.type !== "hidden") input.value = "";
+        });
+        button.closest(".horario-row").style.display = "none";
+    });
+});
+</script>
+{% endblock %}
